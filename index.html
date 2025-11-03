@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Temukan Harta Karun 😄</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500&display=swap');
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        overflow: hidden;
+        background: linear-gradient(to top, #87CEFA 0%, #ffffff 100%);
+        position: relative;
+    }
+
+    /* ☁ Awan animasi */
+    .cloud {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        animation: moveClouds 60s linear infinite;
+    }
+
+    .cloud::before, .cloud::after {
+        content: '';
+        position: absolute;
+        background: inherit;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+    }
+
+    .cloud1 { width: 120px; height: 70px; top: 15%; left: -150px; animation-delay: 0s; }
+    .cloud2 { width: 150px; height: 80px; top: 35%; left: -200px; animation-delay: 10s; }
+    .cloud3 { width: 100px; height: 60px; top: 55%; left: -100px; animation-delay: 20s; }
+
+    @keyframes moveClouds {
+        from { transform: translateX(0); }
+        to { transform: translateX(130vw); }
+    }
+
+    h1 {
+        color: #333;
+        margin-bottom: 6px;
+        font-size: 2rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        z-index: 2;
+    }
+
+    p {
+        color: #555;
+        margin-bottom: 12px;
+        text-align: center;
+        max-width: 350px;
+        z-index: 2;
+    }
+
+    .score {
+        font-size: 1.2rem;
+        color: #222;
+        font-weight: bold;
+        margin-bottom: 15px;
+        z-index: 2;
+    }
+
+    .game-container {
+        display: grid;
+        grid-template-columns: repeat(5, 80px);
+        grid-gap: 12px;
+        justify-content: center;
+        margin-bottom: 15px;
+        z-index: 2;
+    }
+
+    .tile {
+        width: 80px;
+        height: 80px;
+        perspective: 600px;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+    }
+
+    .flipped {
+        transform: rotateY(180deg);
+    }
+
+    .front, .back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.8rem;
+        backface-visibility: hidden;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.25);
+    }
+
+    .front {
+        background: linear-gradient(135deg, #4CAF50, #81C784);
+        color: white;
+        transition: transform 0.3s, background 0.3s;
+    }
+
+    .tile:hover .front {
+        transform: scale(1.05);
+        background: linear-gradient(135deg, #43A047, #66BB6A);
+    }
+
+    .back {
+        background-color: #fff;
+        transform: rotateY(180deg);
+        font-size: 2rem;
+    }
+
+    .glow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        background: radial-gradient(circle, rgba(255,255,0,0.8), transparent);
+        animation: glowBurst 0.8s ease-out;
+        pointer-events: none;
+    }
+
+    @keyframes glowBurst {
+        0% { transform: scale(0); opacity: 1; }
+        70% { transform: scale(1.8); opacity: 0.8; }
+        100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    #message {
+        margin-top: 8px;
+        font-size: 1.1rem;
+        color: #222;
+        font-weight: bold;
+        min-height: 24px;
+        z-index: 2;
+    }
+
+    button {
+        margin: 5px;
+        padding: 8px 16px;
+        border: none;
+        background-color: #4CAF50;
+        color: white;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s, transform 0.1s;
+        z-index: 2;
+    }
+
+    button:hover {
+        background-color: #2E7D32;
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 600px) {
+        .game-container {
+            grid-template-columns: repeat(5, 60px);
+            grid-gap: 8px;
+        }
+
+        .tile {
+            width: 60px;
+            height: 60px;
+        }
+    }
+</style>
+</head>
+<body>
+
+<!-- ☁ Awan Bergerak -->
+<div class="cloud cloud1"></div>
+<div class="cloud cloud2"></div>
+<div class="cloud cloud3"></div>
+
+<h1>💎 Temukan Harta Karun</h1>
+<p>Klik kotak dan temukan harta karun tersembunyi! Tapi hati-hati... bisa aja kentut 💨 atau KENA BOM 💣!</p>
+
+<div class="score">Skor: <span id="score">0</span></div>
+
+<div class="game-container" id="game"></div>
+
+<div id="message"></div>
+<button onclick="restartGame()">🔁 Mulai Ulang</button>
+
+<!-- 🔊 Efek Suara -->
+<audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3"></audio> <!-- Koin -->
+<audio id="failSound" src="https://www.myinstants.com/media/sounds/fart-with-reverb.mp3"></audio> <!-- Kentut -->
+<audio id="bombSound" src="https://assets.mixkit.co/active_storage/sfx/2200/2200-preview.mp3"></audio> <!-- Ledakan -->
+<audio id="bgMusic" src="https://cdn.pixabay.com/download/audio/2023/03/08/audio_2d14c7e2e5.mp3?filename=happy-kids-145105.mp3" loop autoplay></audio> <!-- Musik ceria otomatis -->
+
+<script>
+    const gameContainer = document.getElementById('game');
+    const message = document.getElementById('message');
+    const scoreDisplay = document.getElementById('score');
+    const winSound = document.getElementById('winSound');
+    const failSound = document.getElementById('failSound');
+    const bombSound = document.getElementById('bombSound');
+    const bgMusic = document.getElementById('bgMusic');
+
+    let totalTiles = 25;
+    let treasureIndex;
+    let bombIndices = [];
+    let score = 0;
+    let gameOver = false;
+
+    function createTiles() {
+        // Acak posisi harta karun
+        treasureIndex = Math.floor(Math.random() * totalTiles);
+
+        // Tentukan posisi bom (3 bom acak, tidak sama dengan harta)
+        bombIndices = [];
+        while (bombIndices.length < 3) {
+            const random = Math.floor(Math.random() * totalTiles);
+            if (random !== treasureIndex && !bombIndices.includes(random)) {
+                bombIndices.push(random);
+            }
+        }
+
+        for (let i = 0; i < totalTiles; i++) {
+            const tile = document.createElement('div');
+            tile.classList.add('tile');
+
+            const inner = document.createElement('div');
+            inner.classList.add('inner');
+
+            const front = document.createElement('div');
+            front.classList.add('front');
+            front.textContent = '?';
+
+            const back = document.createElement('div');
+            back.classList.add('back');
+
+            inner.appendChild(front);
+            inner.appendChild(back);
+            tile.appendChild(inner);
+
+            tile.addEventListener('click', () => flipTile(tile, inner, i));
+            gameContainer.appendChild(tile);
+        }
+    }
+
+    function flipTile(tile, inner, index) {
+        if (gameOver || inner.classList.contains('flipped')) return;
+
+        inner.classList.add('flipped');
+        const back = inner.querySelector('.back');
+
+        if (index === treasureIndex) {
+            back.textContent = '💰';
+            message.textContent = '🎉 Hebat! Kamu menemukan harta karun!';
+            score++;
+            scoreDisplay.textContent = score;
+            winSound.play();
+
+            const glow = document.createElement('div');
+            glow.classList.add('glow');
+            tile.appendChild(glow);
+
+            gameOver = true;
+            setTimeout(() => restartGame(), 1500);
+        } else if (bombIndices.includes(index)) {
+            back.textContent = '💣';
+            message.textContent = '💥 Kena BOM! Game Over!';
+            bombSound.play();
+            gameOver = true;
+
+            setTimeout(() => restartGame(), 2000);
+        } else {
+            back.textContent = '💨';
+            message.textContent = 'Oops! Kentut lagi 🤣';
+            failSound.play();
+        }
+    }
+
+    function restartGame() {
+        gameContainer.innerHTML = '';
+        message.textContent = '';
+        gameOver = false;
+        createTiles();
+    }
+
+    // Pastikan musik otomatis dimulai
+    window.addEventListener('load', () => {
+        const playMusic = () => {
+            bgMusic.play().catch(() => {});
+            document.removeEventListener('click', playMusic);
+        };
+        document.addEventListener('click', playMusic);
+    });
+
+    createTiles();
+</script>
+
+</body>
+</html>
